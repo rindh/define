@@ -49,7 +49,7 @@ func formatOutput(data Result) (res string, err error) {
 		return
 	}
 
-	res += data[0].Word + "\n"
+	res += "** " + data[0].Word + " ** \n\n"
 	if len(data[0].Origin) > 0 {
 		res += "Origin: " + data[0].Origin
 	}
