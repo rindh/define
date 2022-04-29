@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -42,7 +43,12 @@ func main() {
 	fmt.Println(run(word))
 }
 
-func formatOutput(data Result) (res string) {
+func formatOutput(data Result) (res string, err error) {
+	if len(data) < 1 {
+		err = errors.New("failed to format")
+		return
+	}
+
 	res += data[0].Word + "\n"
 	if len(data[0].Origin) > 0 {
 		res += "Origin: " + data[0].Origin
@@ -58,29 +64,42 @@ func formatOutput(data Result) (res string) {
 				res += "	- Example: " + k.Example + "\n"
 			}
 		}
-		res += "\n"
 	}
 	return
 }
 
+func help() {
+	fmt.Println("Usage: define <word>")
+	os.Exit(0)
+}
+
 func run(word string) string {
+
+	if word == "-h" {
+		help()
+	}
+
 	res, err := getWord(word)
 	if err != nil {
-		panic(err)
+		fmt.Println("Could not lookup word " + word)
+		os.Exit(0)
 	}
 	resultData, err := unmarshalRes(res)
 	if err != nil {
-		panic(err)
+		fmt.Println("Could not unmarshal response from api!")
+		os.Exit(0)
 	}
-	formatted := formatOutput(resultData)
+	formatted, err := formatOutput(resultData)
+	if err != nil {
+		fmt.Println("Could not lookup word " + word)
+		os.Exit(0)
+	}
+
 	return formatted
 }
 
-func unmarshalRes(body string) (m Result, err error) {
-	errs := json.Unmarshal([]byte(body), &m)
-	if errs != nil {
-		panic(err)
-	}
+func unmarshalRes(body string) (m Result, errs error) {
+	json.Unmarshal([]byte(body), &m)
 	return
 }
 
