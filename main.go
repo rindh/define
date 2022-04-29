@@ -31,27 +31,57 @@ type Result []struct {
 var dictionaryapi = "https://api.dictionaryapi.dev/api/v2/entries/en/"
 
 func main() {
-	word := os.Args[1]
-	args := os.Args[2:]
-	parseArgs(args)
-	res, err := getWord(word)
+	args := os.Args[1:]
 
+	if len(args) > 1 {
+		fmt.Println("Too many arguments!")
+		os.Exit(0)
+	}
+
+	word := os.Args[1]
+	fmt.Println(run(word))
+}
+
+func formatOutput(data Result) (res string) {
+	res += data[0].Word + "\n"
+	if len(data[0].Origin) > 0 {
+		res += "Origin: " + data[0].Origin
+	}
+
+	res += "Meanings \n"
+	for _, val := range data[0].Meanings {
+		res += "Used as a " + val.PartOfSpeech + "\n"
+
+		for _, k := range val.Definitions {
+			res += "	Definition: " + k.Definition + "\n"
+			if len(k.Example) > 0 {
+				res += "	- Example: " + k.Example + "\n"
+			}
+		}
+		res += "\n"
+	}
+	return
+}
+
+func run(word string) string {
+	res, err := getWord(word)
 	if err != nil {
 		panic(err)
 	}
-	var m Result
-	errs := json.Unmarshal([]byte(res), &m)
+	resultData, err := unmarshalRes(res)
+	if err != nil {
+		panic(err)
+	}
+	formatted := formatOutput(resultData)
+	return formatted
+}
+
+func unmarshalRes(body string) (m Result, err error) {
+	errs := json.Unmarshal([]byte(body), &m)
 	if errs != nil {
 		panic(err)
 	}
-	fmt.Println(m[0].Meanings[0])
-
-}
-
-func parseArgs(args []string) {
-	for _, val := range args {
-		fmt.Println(val)
-	}
+	return
 }
 
 func getWord(word string) (sb string, err error) {
