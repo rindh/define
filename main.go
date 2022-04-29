@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 )
 
 type Result []struct {
@@ -30,7 +31,10 @@ type Result []struct {
 var dictionaryapi = "https://api.dictionaryapi.dev/api/v2/entries/en/"
 
 func main() {
-	res, err := getWord()
+	word := os.Args[1]
+	args := os.Args[2:]
+	parseArgs(args)
+	res, err := getWord(word)
 
 	if err != nil {
 		panic(err)
@@ -40,13 +44,18 @@ func main() {
 	if errs != nil {
 		panic(err)
 	}
-	fmt.Println(m[0].Meanings)
+	fmt.Println(m[0].Meanings[0])
 
 }
 
-func getWord() (sb string, err error) {
-	println("Hello world!")
-	resp, err := http.Get(dictionaryapi + "hello")
+func parseArgs(args []string) {
+	for _, val := range args {
+		fmt.Println(val)
+	}
+}
+
+func getWord(word string) (sb string, err error) {
+	resp, err := http.Get(dictionaryapi + word)
 
 	if err != nil {
 		panic(err)
